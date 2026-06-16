@@ -24,6 +24,7 @@ interface ScreenshotRequest {
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+const SCREENSHOT_DELAY_MS = 15_000;
 
 function mapSameSite(value: string | null | undefined): Cookie['sameSite'] | undefined {
   if (!value) return undefined;
@@ -77,9 +78,9 @@ function isTweetUrl(url: string): boolean {
   );
 }
 
-async function waitForPageReady(page: Page) {
+async function waitBeforeScreenshot(page: Page) {
   await page.waitForLoadState('load');
-  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(SCREENSHOT_DELAY_MS);
 }
 
 async function takeScreenshot(page: Page, url: string, extraHeaders: Record<string, string> = {}) {
@@ -141,8 +142,7 @@ async function handleScreenshot(request: Request, env: Env) {
   try {
     const page = await browser.newPage({ userAgent: USER_AGENT });
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await waitForPageReady(page);
-    await page.waitForTimeout(15000);
+    await waitBeforeScreenshot(page);
     return await takeScreenshot(page, url);
   } catch (error) {
     return Response.json(
