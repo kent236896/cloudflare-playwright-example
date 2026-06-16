@@ -142,6 +142,7 @@ async function handleScreenshot(request: Request, env: Env) {
     const page = await browser.newPage({ userAgent: USER_AGENT });
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await waitForPageReady(page);
+    await page.waitForTimeout(15000);
     return await takeScreenshot(page, url);
   } catch (error) {
     return Response.json(
